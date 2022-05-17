@@ -23,18 +23,25 @@ if ($handle = opendir($image_dir))
 //
 while (false !== ($entry = readdir( $handle )))
 {
-/* la variable enty ne poura pas se voire afecter  les . et les ..
-*/
-if( $entry != "." && $entry != "..")
-{
-/* nous affecton le resuta dans un array*/
-$images[] = $entry;
+
+  if( $entry != "." && $entry != "..")
+  {
+  $i++;
+  $images[$i] ['filemame'] = $entry;
+  // utilisation de this pour apeler la methode getImageData
+
+  $image_data = $this->getImageData($entry);
+
+  $image [$i] ['tile'] = $image_data['title'];
+  $image[$i] ['description'] = $image_data['description'];
+
+  }
 }
-}
-}
+  }
 closedir ($handle);//nous fermons le repertoire avec closedir
 return $images; //nous retournons le tableau de données
 }
+
 /* la method insertImage  per enregistrer dans la base les informations
 postées depuis l’administration : insertImage($title, $descr, $filename).*/
 
@@ -68,6 +75,41 @@ public function insertImage ($title, $descr, $filename)
     $mysqli->close();
   }
 
+}
+
+// 03 Optimisation fonctionnelle du gestionnaire : pages 5
+// méthode qui nous permet de retourner le tableau  $image_data
+// contenant donc les informations de la table image :
+
+public function getImageData ($filename)
+{
+  $mysqli = new mysqli('localhost','root','','projet_image')
+
+  $mysqli->set_charset("utf8");
+  /* verification de conexion à la base */
+
+  if ($mysqli->connetc_errno) {
+    printf("Echec de la conection %s\n",$mysqli->connect_error);
+    exit();
+  }
+
+  $result =$mysqli->query('SELECT id, title, description, filename,
+    FROM image WHERE filename = "' . $filename . '" ');
+
+  if (!$result)
+  {
+    echo 'Une erreur est sur venue lor de la recuperation des données dans la base. Mesage d\'erreur : ' . $mysqli->error;
+    return false;
+  }
+  else {
+    $row = $result->fetch_array();
+    $image_data['id'] = $row['id'];
+    $image_data['title'] = $row['title'];
+    $image_data['description'] = $row['description'];
+    $image_data['filename'] = $row['filename'];
+    return $image_data
+  }
+  $mysqli->close ();
 }
 
 }
